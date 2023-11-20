@@ -35,4 +35,9 @@ No resources.
 ## Outputs
 
 No outputs.
+
+## Execution example
+```bash
+terraform plan -var-file=variables/staging.tfvars
+```
 <!-- END_TF_DOCS -->

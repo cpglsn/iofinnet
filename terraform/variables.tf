@@ -5,7 +5,7 @@ variable "region" {
 }
 
 variable "env_name" {
-  description = "the environment you want to deploy"
+  description = "the environment you want to deploy must be dev, prod or staging"
   type        = string
   default     = "dev"
 
@@ -17,7 +17,7 @@ variable "env_name" {
 
 variable "cloudfront_to_s3_map" {
   type        = map(string)
-  description = "The key->value combo of the url-path and respective bucket"
+  description = "The key->value combo of the url and respective bucket"
   default = {
     auth      = "bucket1"
     info      = "bucket2"
