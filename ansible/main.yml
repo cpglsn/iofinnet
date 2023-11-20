@@ -1,0 +1,28 @@
+---
+
+- name: App installation playbook
+  hosts: all
+  become: true
+  gather_facts: false
+
+  roles:
+    - { role: docker, tags: [docker] }
+    - { role: app, tags: [app] }
+
+  pre_tasks:
+
+    - name: Running ansible checks
+      tags: always
+      block:
+
+        - name: Install python if not present
+          ansible.builtin.raw: test -e /usr/bin/python || (apt -y update && apt install -y python3)
+
+        # gather facts after installing python
+        - name: Gathering facts After installing python
+          ansible.builtin.setup:
+
+        - name: Check if server is Ubuntu 22.04
+          ansible.builtin.fail:
+            msg: "These tasks has been tested on Ubuntu 22.04 therefore it should only be run there"
+          when: ansible_distribution != "Ubuntu" or ansible_distribution_version != '22.04'

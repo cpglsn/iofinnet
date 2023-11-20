@@ -1,0 +1,30 @@
+---
+
+- name: Check if server is Ubuntu 22.04
+  ansible.builtin.fail:
+    msg: "These tasks has been tested on Ubuntu 22.04 therefore it should only be run there"
+  when: ansible_distribution != "Ubuntu" or ansible_distribution_version != '22.04'
+
+- name: Create app directory for docker container
+  ansible.builtin.file:
+    path: /opt/docker/app
+    state: directory
+    mode: '0755'
+
+- name: Copy HAProxy config to the server
+  ansible.builtin.copy:
+    src: opt/docker/app/haproxy.cfg
+    dest: /opt/docker/app/haproxy.cfg
+    mode: "0644"
+
+- name: Copy docker-compose file
+  ansible.builtin.template:
+    src: opt/docker/app/docker-compose.yaml.j2
+    dest: /opt/docker/app/docker-compose.yaml
+    owner: root
+    mode: "0644"
+
+- name: Start app
+  ansible.builtin.shell: docker compose up -d
+  args:
+    chdir: /opt/docker/app

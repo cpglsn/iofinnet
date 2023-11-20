@@ -1,0 +1,52 @@
+---
+
+- name: Define role executed var docker_was_executed
+  ansible.builtin.set_fact:
+    docker_was_executed: true
+    cacheable: true
+
+- name: Check if server is Ubuntu 22.04
+  ansible.builtin.fail:
+    msg: "These tasks has been tested on Ubuntu 22.04 therefore it should only be run there"
+  when: ansible_distribution != "Ubuntu" or ansible_distribution_version != '22.04'
+
+- name: Remove system packages
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: absent
+  with_items:
+    - 'docker.io docker-doc'
+    - 'docker-compose'
+    - 'docker-compose-v2'
+    - 'podman-docker'
+    - 'containerd'
+    - 'runc'
+
+- name: Update repositories cache and install dependencies packages
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    update_cache: true
+  with_items:
+    - 'ca-certificates'
+    - 'curl'
+    - 'gnupg'
+
+- name: Add Docker official GPG key
+  ansible.builtin.shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --batch --yes --dearmor -o /etc/apt/keyrings/docker.gpg
+
+# didn't used ansible.builtin.apt_repository to have dynamic arch functionality, otherwise
+# we can grab the arch as variable from the facts and use it here
+- name: Add Docker Repo
+  ansible.builtin.shell: echo "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+- name: Install docker packages
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    update_cache: true
+  with_items:
+    - 'docker-ce'
+    - 'docker-ce-cli'
+    - 'containerd.io'
+    - 'docker-buildx-plugin'
+    - 'docker-compose-plugin'
+  notify: "start and enable docker daemon"
